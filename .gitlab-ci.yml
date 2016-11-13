@@ -1,0 +1,17 @@
+build:
+  image: docker:1.10
+  stage: build
+  variables:
+    LATEST_IMAGE: $CI_REGISTRY_IMAGE:latest
+    REF_IMAGE: $CI_REGISTRY_IMAGE:$CI_BUILD_REF_NAME
+    BUILD_IMAGE: $CI_REGISTRY_IMAGE:build-$CI_BUILD_REF_NAME-$CI_PIPELINE_ID
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN -e "dummy@example.com" registry.jahkeup.com
+  after_script:
+    - docker rmi $BUILD_IMAGE
+  script:
+    - docker build --no-cache -t $BUILD_IMAGE .
+    - docker tag $BUILD_IMAGE $LATEST_IMAGE
+    - docker tag $BUILD_IMAGE $REF_IMAGE
+    - docker push $REF_IMAGE
+    - docker push $LATEST_IMAGE
